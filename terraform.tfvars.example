@@ -1,0 +1,45 @@
+# ============================================================
+# FICHIER D'EXEMPLE - Copier en terraform.tfvars et compléter
+# NE JAMAIS committer terraform.tfvars dans Git (contient des secrets)
+# ============================================================
+
+# --- Authentification OCI ---
+# Trouver ces valeurs dans : OCI Console > Profile > User Settings > API Keys
+tenancy_ocid     = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+user_ocid        = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "ca-toronto-1"
+
+# --- Compartiment ---
+# Trouver dans : OCI Console > Identity & Security > Compartments
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# --- Réseau ---
+vcn_cidr            = "10.0.0.0/16"
+public_subnet_cidr  = "10.0.1.0/24"
+private_subnet_cidr = "10.0.2.0/24"
+
+# --- SSH ---
+# Générer avec : ssh-keygen -t ed25519 -C "labo-soc"
+# Puis : cat ~/.ssh/id_ed25519.pub
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... ton@email.com"
+
+# --- Images OCI Ubuntu 22.04 ---
+# Trouver les OCIDs dans : OCI Console > Compute > Images > Platform Images
+# Filtrer : Ubuntu 22.04, Architecture ARM (pour manager) et AMD (pour agent)
+ubuntu_image_ocid     = "ocid1.image.oc1.ca-toronto-1.ARM_UBUNTU_22_OCID"
+ubuntu_amd_image_ocid = "ocid1.image.oc1.ca-toronto-1.AMD_UBUNTU_22_OCID"
+
+# --- Availability Domain ---
+# Trouver dans : OCI Console > Identity > Availability Domains
+availability_domain = "Uocm:CA-TORONTO-1-AD-1"
+
+# --- Instances ---
+manager_shape     = "VM.Standard.A1.Flex"
+manager_ocpus     = 4
+manager_memory_gb = 24
+agent_shape       = "VM.Standard.E2.1.Micro"
+
+# --- Tags ---
+project_name = "labo-soc-wazuh"

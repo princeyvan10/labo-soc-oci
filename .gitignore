@@ -1,0 +1,22 @@
+# Terraform - Fichiers sensibles et générés
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Clés SSH
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Logs
+*.log
