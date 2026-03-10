@@ -1,10 +1,77 @@
 # Lab SOC Cloud-Native — Oracle Cloud Infrastructure
 
-> Déploiement d'un SOC (Security Operations Center) multi-région sur Oracle Cloud Infrastructure avec Wazuh SIEM, orchestré par Terraform.
+> Simulation d'un Security Operations Center (SOC) réel : déploiement d'un SIEM Wazuh multi-région sur OCI, collecte de logs, détection de menaces et analyse d'alertes avec mapping MITRE ATT&CK.
 
 ---
 
-## Architecture
+## Objectif du projet
+
+Ce lab reproduit le travail quotidien d'un analyste SOC :
+
+1. **Collecter** les logs de systèmes via des agents Wazuh
+2. **Détecter** des comportements malveillants en temps réel
+3. **Analyser** les alertes et les corréler avec le framework MITRE ATT&CK
+4. **Répondre** en identifiant la source, le vecteur et l'impact de l'attaque
+
+L'infrastructure cloud (OCI + Terraform) sert de support réaliste — comme en entreprise où les serveurs sont dans le cloud.
+
+---
+
+## Scénarios de détection réalisés
+
+### 1. Brute Force SSH (T1110 - Brute Force)
+
+**Simulation :** Attaque par dictionnaire avec Hydra depuis un hôte interne
+**Résultat :** 3148 tentatives d'authentification échouées détectées
+
+| Règle Wazuh | Description | Niveau |
+|-------------|-------------|--------|
+| 5710 | sshd: Attempt to login using a non-existent user | 5 |
+| 5760 | sshd: Authentication failed | 5 |
+| 5503 | PAM: User login failed | 5 |
+
+**Analyse SOC :** Les règles 5710 et 5760 déclenchées en rafale sur une courte période indiquent une attaque automatisée. L'IP source est interne (pivot possible) — vecteur d'escalade de privilèges.
+
+---
+
+### 2. Reconnaissance réseau (T1046 - Network Service Discovery)
+
+**Simulation :** Scan de ports ciblé avec Nmap
+**Résultat :** Connexions TCP anormales détectées sur plusieurs ports en séquence
+
+**Analyse SOC :** Un scan de ports précède généralement une intrusion. Il permet à l'attaquant d'identifier les services exposés avant d'exploiter une vulnérabilité.
+
+---
+
+## Workflow SOC — De l'alerte à l'analyse
+
+```
+[Agent Wazuh] ──logs──► [Wazuh Manager] ──indexe──► [OpenSearch]
+                                │
+                         [Règles de détection]
+                                │
+                         [Alerte générée]
+                                │
+                    ┌───────────▼───────────┐
+                    │   Dashboard Wazuh     │
+                    │  - Niveau de sévérité │
+                    │  - Règle déclenchée   │
+                    │  - MITRE ATT&CK       │
+                    │  - IP source/dest     │
+                    └───────────────────────┘
+                                │
+                    [Analyste SOC investigue]
+                                │
+                    ┌───────────▼───────────┐
+                    │  Questions clés :     │
+                    │  Qui ? Quoi ? Quand ? │
+                    │  Comment ? Impact ?   │
+                    └───────────────────────┘
+```
+
+---
+
+## Architecture infrastructure
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -21,44 +88,33 @@
 │   │  │ 4 OCPU / 24GB  │  │    │  │ 4 OCPU / 24GB  │  │     │
 │   │  │ Dashboard :443 │  │    │  │ Dashboard :443 │  │     │
 │   │  └────────────────┘  │    │  └────────────────┘  │     │
+│   │         ▲            │    │                      │     │
+│   │    [logs/alertes]    │    │                      │     │
 │   │  ┌────────────────┐  │    │  ┌────────────────┐  │     │
 │   │  │  Wazuh Agent   │  │    │  │  Wazuh Agent   │  │     │
-│   │  │  E2.1.Micro    │  │    │  │ Standard3.Flex │  │     │
+│   │  │  oci-agent-01  │  │    │  │ Standard3.Flex │  │     │
 │   │  └────────────────┘  │    │  └────────────────┘  │     │
 │   └──────────────────────┘    └──────────────────────┘     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## Stack Technologique
 
-| Composant | Technologie |
-|---|---|
-| Cloud Provider | Oracle Cloud Infrastructure (OCI) |
-| IaC | Terraform >= 1.3 |
-| SIEM | Wazuh 4.7.5 (Manager + Indexer + Dashboard) |
-| OS | Ubuntu 22.04 LTS (x86_64) |
-| Sécurité réseau | Security Lists + NSG (double couche) |
-| Firewall VM | UFW |
+| Composant | Technologie | Rôle SOC |
+|-----------|-------------|----------|
+| SIEM | Wazuh 4.7.5 | Collecte, corrélation, alertes |
+| Indexeur | OpenSearch | Stockage et recherche des logs |
+| Dashboard | Wazuh UI | Visualisation et investigation |
+| Cloud | Oracle Cloud Infrastructure | Infrastructure hôte |
+| IaC | Terraform >= 1.3 | Déploiement reproductible |
+| OS | Ubuntu 22.04 LTS x86_64 | Système surveillé |
+| Firewall | UFW + OCI NSG | Contrôle d'accès réseau |
 
-## Fonctionnalités
+---
 
-- **Multi-région canadienne** : Montréal (ca-montreal-1) + Toronto (ca-toronto-1)
-- **Infrastructure as Code** : 100% automatisé via Terraform
-- **Sécurité en couches** : OCI Security Lists + NSG + UFW
-- **Installation automatique** : Wazuh déployé via cloud-init (user_data)
-- **Dashboard HTTPS** : Interface web Wazuh accessible sur port 443
-- **Agent connecté** : Agent Wazuh opérationnel sur Montréal (oci-agent-01)
-- **Détection brute force SSH** : Alertes MITRE ATT&CK en temps réel (rules 5710, 5760, 5503)
-- **Simulation d'attaques** : Tests hydra + nmap validés avec 6000+ alertes générées
-
-## Prérequis
-
-- Compte Oracle Cloud Infrastructure (Pay-as-you-go)
-- Terraform >= 1.3 installé
-- Clé API OCI configurée dans `~/.oci/`
-- Clé SSH RSA générée
-
-## Déploiement
+## Déploiement de l'infrastructure
 
 ```bash
 # 1. Cloner le repo
@@ -93,16 +149,7 @@ terraform apply
 └── .gitignore
 ```
 
-## Sécurité réseau
-
-| Port | Protocole | Source | Usage |
-|------|-----------|--------|-------|
-| 22 | TCP | 0.0.0.0/0 | SSH Admin |
-| 443 | TCP | 0.0.0.0/0 | Wazuh Dashboard |
-| 1514 | TCP/UDP | VCN | Événements agents |
-| 1515 | TCP | VCN | Enregistrement agents |
-| 55000 | TCP | 0.0.0.0/0 | API Wazuh |
-| 9200 | TCP | VCN | OpenSearch interne |
+---
 
 ## Accès au Dashboard
 
@@ -114,37 +161,37 @@ User     : admin
 Password : (généré lors de l'installation — voir logs)
 ```
 
-Suivre l'installation :
-```bash
-ssh -i ~/.ssh/oci-key ubuntu@<ip> 'sudo tail -f /var/log/wazuh-install.log'
-```
+---
 
-## Note importante — iptables OCI
+## Note importante — UFW / iptables OCI
 
-OCI Ubuntu ajoute une règle iptables REJECT par défaut. Après déploiement, supprimer cette règle :
+OCI Ubuntu configure UFW par défaut. S'assurer que les ports Wazuh sont ouverts :
 
 ```bash
-sudo iptables -D INPUT 5
-sudo netfilter-persistent save
+sudo ufw allow 443/tcp
+sudo ufw allow 1514/tcp
+sudo ufw allow 1514/udp
+sudo ufw allow 1515/tcp
+sudo ufw allow 55000/tcp
+sudo ufw reload
 ```
 
-## Simulations d'attaques réalisées
-
-| Attaque | Outil | Règles déclenchées | MITRE ATT&CK |
-|---------|-------|-------------------|--------------|
-| Brute Force SSH | Hydra | 5710, 5760, 5503 | T1110 - Brute Force |
-| Scan de ports | Nmap | Connexions SSH anormales | T1046 - Network Service Discovery |
+---
 
 ## Compétences démontrées
 
+**SOC / Cybersécurité**
+- Analyse et triage d'alertes SIEM (Wazuh)
+- Mapping des menaces avec le framework MITRE ATT&CK
+- Simulation d'attaques et validation de la détection
+- Investigation d'incidents (brute force, reconnaissance réseau)
+- Interprétation de logs SSH, PAM, système
+
+**Infrastructure & Cloud**
 - Terraform multi-provider (alias de région OCI)
 - Architecture réseau cloud (VCN, IGW, Security Lists, NSG)
 - Administration Linux (UFW, iptables, systemd)
-- Déploiement SIEM Wazuh en production
-- Connexion et configuration d'agents Wazuh
-- Simulation d'attaques et analyse d'alertes (SOC Analyst)
-- Mapping MITRE ATT&CK des menaces détectées
-- Sécurité défensive et monitoring cloud
+- Déploiement SIEM Wazuh en environnement cloud
 - Infrastructure as Code et automatisation
 
 ---
