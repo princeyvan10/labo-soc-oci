@@ -47,6 +47,9 @@
 - **Sécurité en couches** : OCI Security Lists + NSG + UFW
 - **Installation automatique** : Wazuh déployé via cloud-init (user_data)
 - **Dashboard HTTPS** : Interface web Wazuh accessible sur port 443
+- **Agent connecté** : Agent Wazuh opérationnel sur Montréal (oci-agent-01)
+- **Détection brute force SSH** : Alertes MITRE ATT&CK en temps réel (rules 5710, 5760, 5503)
+- **Simulation d'attaques** : Tests hydra + nmap validés avec 6000+ alertes générées
 
 ## Prérequis
 
@@ -125,12 +128,22 @@ sudo iptables -D INPUT 5
 sudo netfilter-persistent save
 ```
 
+## Simulations d'attaques réalisées
+
+| Attaque | Outil | Règles déclenchées | MITRE ATT&CK |
+|---------|-------|-------------------|--------------|
+| Brute Force SSH | Hydra | 5710, 5760, 5503 | T1110 - Brute Force |
+| Scan de ports | Nmap | Connexions SSH anormales | T1046 - Network Service Discovery |
+
 ## Compétences démontrées
 
 - Terraform multi-provider (alias de région OCI)
 - Architecture réseau cloud (VCN, IGW, Security Lists, NSG)
 - Administration Linux (UFW, iptables, systemd)
 - Déploiement SIEM Wazuh en production
+- Connexion et configuration d'agents Wazuh
+- Simulation d'attaques et analyse d'alertes (SOC Analyst)
+- Mapping MITRE ATT&CK des menaces détectées
 - Sécurité défensive et monitoring cloud
 - Infrastructure as Code et automatisation
 
