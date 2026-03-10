@@ -43,6 +43,29 @@ L'infrastructure cloud (OCI + Terraform) sert de support réaliste — comme en 
 
 ---
 
+## Screenshots — Lab en production
+
+### Dashboard Wazuh — Security Events (vue MITRE ATT&CK)
+![Wazuh Dashboard MITRE ATT&CK](images/wazuh-dashboard-mitre.png)
+
+> **6078 événements** détectés en 24h · **3148 échecs d'authentification** · Top attaques : Password Guessing, SSH Brute Force, Valid Accounts
+
+---
+
+### Dashboard Wazuh — Vue générale des agents
+![Wazuh Dashboard Overview](images/wazuh-dashboard-overview.png)
+
+> Deux agents actifs : `wazuhmanager` (Montréal) et `oci-agent-01` · Monitoring en temps réel
+
+---
+
+### Événements en direct — Tentatives SSH détectées
+![Wazuh Events SSH Attacks](images/wazuh-events-ssh-attacks.png)
+
+> Règles 5710 (login non-existent user), 5760 (auth failed), 5503 (PAM failure) — **attaque brute force SSH active détectée**
+
+---
+
 ## Workflow SOC — De l'alerte à l'analyse
 
 ```
