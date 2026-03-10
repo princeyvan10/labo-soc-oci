@@ -20,3 +20,6 @@ id_ed25519
 
 # Logs
 *.log
+
+# Claude Code
+.claude/
